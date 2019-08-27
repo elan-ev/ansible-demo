@@ -1,0 +1,77 @@
+---
+# vim: et:ts=2:sw=2:sts=2
+
+- hosts: server
+
+  vars:
+    admins:
+      - dummy1
+      - dummy2
+    remove_user:
+      - evilpreviousemployee
+
+  tasks:
+    - name: install base tools
+      become: true
+      package:
+        state: present
+        name: '{{ item }}'
+      loop:
+        - vim
+        - zsh
+
+    - name: ensure group wheel exists
+      group:
+        name: wheel
+        state: present
+
+    - name: create admin users
+      become: true
+      user:
+        name: '{{ item }}'
+        groups: wheel
+        append: true
+      loop: '{{ admins }}'
+
+    - name: set up admin authorized keys
+      become: true
+      authorized_key:
+        user: '{{ item }}'
+        state: present
+        key: "{{ lookup('file', 'pub-keys/{{ item }}.pub') }}"
+        exclusive: true
+      loop: '{{ admins }}'
+
+    - name: remove old users
+      become: true
+      user:
+        name: '{{ item }}'
+        state: absent
+        remove: true
+      loop: "{{ remove_user | default([]) }}"
+      when: item != ""
+
+    - name: allow wheel to sudo without a password
+      become: true
+      lineinfile:
+        path: /etc/sudoers
+        state: present
+        regexp: "^%wheel"
+        line: "%wheel ALL=(ALL) NOPASSWD: ALL"
+
+    - name: disable password authentication
+      become: true
+      lineinfile:
+        dest: /etc/ssh/sshd_config
+        regexp: '^PasswordAuthentication '
+        line: 'PasswordAuthentication no'
+      notify:
+        - reload sshd
+
+
+  handlers:
+    - name: reload sshd
+      become: true
+      service:
+        name: sshd
+        state: reloaded

@@ -1,0 +1,48 @@
+- name: install utilities
+  yum:
+    name:
+      - mariadb
+    state: present
+  become: yes
+
+- name: install opencast package
+  yum:
+    name: opencast7-{{opencast_role}}
+    state: present
+    enablerepo: '{{ opencast_repository_identifiers }}'
+    update_cache: yes
+  become: yes
+
+- name: allow opencast user to write to the data directory
+  file:
+    path: '{{ item }}'
+    owner: opencast
+  become: yes
+  loop:
+    - '{{ opencast_work_directory }}'
+    - '{{ opencast_archive_directory }}'
+
+- name: configure opencast
+  template:
+    src: '{{item}}'
+    dest: /etc/opencast
+  become: yes
+  notify: restart opencast
+  loop:
+    - custom.properties
+    - org.opencastproject.organization-mh_default_org.cfg
+    - org.opencastproject.serviceregistry.impl.ServiceRegistryJpaImpl.cfg
+
+- name: increase java_maxmem
+  lineinfile:
+    path: /etc/opencast/setenv
+    regexp: '^export JAVA_MAX_MEM='
+    line: export JAVA_MAX_MEM=2G
+  become: yes
+
+- name: start and enable opencast service
+  service:
+    name: opencast
+    state: started
+    enabled: yes
+  become: yes

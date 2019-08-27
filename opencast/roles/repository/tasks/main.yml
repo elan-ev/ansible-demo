@@ -1,0 +1,24 @@
+- name: add opencast package repositories
+  yum_repository:
+    name: opencast-{{ item }}
+    description: Opencast el 7 Repository ({{ item }})
+    baseurl: https://pkg.opencast.org/rpms/release/el/7/{{ item }}
+    username: '{{ pkg_opencast_org_username }}'
+    password: '{{ pkg_opencast_org_password }}'
+    gpgcheck: true
+    gpgkey: https://pkg.opencast.org/gpgkeys/opencast-el7-rpm.opencast.org.key
+    file: opencast
+    enabled: no
+  become: yes
+  loop: '{{ opencast_repository_archs }}'
+
+- name: install epel repository
+  yum:
+    name: epel-release
+    state: latest
+    enablerepo: '{{ opencast_repository_identifiers }}'
+  become: yes
+
+- name: fix epel
+  become: true
+  command: sed -i 's/^metalink=https/metalink=http/' /etc/yum.repos.d/epel.repo

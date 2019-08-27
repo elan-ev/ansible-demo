@@ -1,0 +1,12 @@
+- hosts: activemq
+  roles:
+    - activemq
+
+- hosts: database
+  roles:
+    - database
+  gather_facts: no
+
+- hosts: opencast
+  roles:
+    - opencast

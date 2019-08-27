@@ -1,0 +1,5 @@
+- name: restart the reverse proxy
+  service:
+    name: nginx
+    state: restarted
+  become: yes

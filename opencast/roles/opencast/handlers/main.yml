@@ -1,0 +1,5 @@
+- name: restart opencast
+  service:
+    name: opencast
+    state: restarted
+  become: yes

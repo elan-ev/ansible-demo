@@ -1,0 +1,61 @@
+- name: install a reverse proxy
+  yum:
+    name: nginx
+  become: yes
+
+- name: create configuration directories
+  file:
+    path: /etc/nginx/{{ item }}
+    state: directory
+  become: yes
+  loop:
+    - ssl
+    - conf.d
+
+- name: configure the reverse proxy
+  template:
+    src: nginx.conf
+    dest: /etc/nginx/nginx.conf
+  notify: restart the reverse proxy
+  become: yes
+
+- name: generate diffie-hellman parameters
+  openssl_dhparam:
+    path: /etc/nginx/ssl/dhparam.pem
+    size: 2048
+    mode: 0640
+    owner: nginx
+    group: nginx
+  notify: restart the reverse proxy
+  become: yes
+
+- name: install ssl certificate
+  copy:
+    src: certificate.pem
+    dest: /etc/nginx/ssl/{{ item }}
+    owner: nginx
+    group: nginx
+    mode: '0640'
+  notify: restart the reverse proxy
+  become: yes
+  loop:
+    - '{{ inventory_hostname }}.crt'
+
+- name: install ssl certificate key
+  copy:
+    src: key.pem
+    dest: /etc/nginx/ssl/{{ item }}
+    owner: nginx
+    group: nginx
+    mode: '0640'
+  notify: restart the reverse proxy
+  become: yes
+  loop:
+    - '{{ inventory_hostname }}.key'
+
+- name: start and enable reverse proxy service
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+  become: yes

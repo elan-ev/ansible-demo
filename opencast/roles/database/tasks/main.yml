@@ -1,0 +1,65 @@
+- name: install mariadb
+  yum:
+    name: '{{item}}'
+  become: yes
+  loop:
+    - MySQL-python
+    - mariadb-server
+
+- name: enable mariadb
+  service:
+    name: mariadb
+    enabled: yes
+    state: started
+  become: yes
+
+- name: set root user password for database
+  mysql_user:
+    name: root
+    password: "{{database_admin_password}}"
+    login_user: root
+    login_password: "{{database_admin_password}}"
+    check_implicit_admin: yes
+    state: present
+
+- name: create database
+  mysql_db:
+    name: "{{database_name}}"
+    state: present
+    encoding: utf8
+    collation: utf8_general_ci
+    login_user: root
+    login_password: "{{database_admin_password}}"
+  register: database
+
+- name: create database user (localhost)
+  mysql_user:
+    name: '{{ database_user }}'
+    password: '{{ database_password }}'
+    login_user: root
+    login_password: '{{ database_admin_password }}'
+    priv: '{{database_name}}.*:SELECT,INSERT,ALTER,UPDATE,DELETE,CREATE,DROP,INDEX,TRIGGER,CREATE TEMPORARY TABLES,REFERENCES'
+    state: present
+
+- name: create database user
+  mysql_user:
+    name: '{{ database_user }}'
+    password: '{{ database_password }}'
+    host: '{{ item }}'
+    login_user: root
+    login_password: '{{ database_admin_password }}'
+    priv: '{{database_name}}.*:SELECT,INSERT,ALTER,UPDATE,DELETE,CREATE,DROP,INDEX,TRIGGER,CREATE TEMPORARY TABLES,REFERENCES'
+    state: present
+  loop:
+    - '%'
+    - localhost
+
+#- name: set up opencast database schema
+#  mysql_db:
+#    name: opencast
+#    state: import
+#    target: /usr/share/opencast/docs/scripts/ddl/mysql5.sql
+#    login_host: "{{ansible_host}}"
+#    login_user: root
+#    login_password: '{{ database_admin_password }}'
+#  when: database is changed

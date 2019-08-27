@@ -1,0 +1,38 @@
+opencast_repository_archs:
+  - x86_64
+  - noarch
+opencast_repository_identifiers:
+  - opencast-x86_64
+  - opencast-noarch
+
+# opencast special servers
+opencast_domainname_admin: '{{ groups.opencast[0] }}'
+opencast_domainname_presentation: '{{ groups.opencast[1] }}'
+
+# opencast passwords
+opencast_admin_password: '{{ vault_opencast_admin_password }}'
+opencast_digest_password: '{{ vault_opencast_digest_password }}'
+
+# opencast shutdown command
+opencast_shutdown_command: '{{ vault_opencast_shutdown_command }}'
+
+# activemq passwords
+activemq_password: '{{ vault_activemq_password }}'
+
+# database credentials
+database_name: opencast
+database_user: opencast
+database_password: '{{ vault_database_password }}'
+database_admin_password: '{{ vault_database_admin_password }}'
+
+# oauth/lti credentials
+oauth_consumer_key: '{{ vault_oauth_consumer_key }}'
+oauth_consumer_secret: '{{ vault_oauth_consumer_secret }}'
+
+# package repository credentials
+pkg_opencast_org_username: '{{ vault_pkg_opencast_org_username }}'
+pkg_opencast_org_password: '{{ vault_pkg_opencast_org_password }}'
+
+# Storage directory
+opencast_work_directory: /srv/opencast/
+opencast_archive_directory: /srv/opencast/

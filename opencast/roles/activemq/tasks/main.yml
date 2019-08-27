@@ -1,0 +1,27 @@
+- name: install activemq
+  yum:
+    name:
+      - activemq-dist
+    state: present
+    enablerepo: '{{ opencast_repository_identifiers }}'
+    update_cache: yes
+  become: yes
+
+- name: configure activemq
+  template:
+    src: '{{item}}'
+    dest: /etc/activemq
+  notify: restart activemq
+  become: yes
+  loop:
+    - activemq.xml
+    - users.properties
+    - groups.properties
+    - login.config
+
+- name: start and enable activemq service
+  service:
+    name: activemq
+    state: started
+    enabled: yes
+  become: yes
