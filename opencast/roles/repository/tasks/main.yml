@@ -18,7 +18,3 @@
     state: latest
     enablerepo: '{{ opencast_repository_identifiers }}'
   become: yes
-
-- name: fix epel
-  become: true
-  command: sed -i 's/^metalink=https/metalink=http/' /etc/yum.repos.d/epel.repo
